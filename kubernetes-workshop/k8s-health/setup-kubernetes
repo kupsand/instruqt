@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Reset home dir
+cd /root/
+
+# Wait for kubernetes to become available
+if ! curl --silent --fail --output /dev/null http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/; then
+  echo "Starting Kubernetes, this may take a minute or so"
+  while ! curl --silent --fail --output /dev/null http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/; do printf "." && sleep 1; done || break
+  printf "done."
+  echo ""
+fi
+
+# Install unzip
+sudo apt-get install unzip
+
+# Create the demo app in our k8s cluster
+mkdir app/
+pushd app/
+wget https://raw.githubusercontent.com/polfliet/instruqt/master/kubernetes-new-relic-university/assets/app/rabbitmq.yaml
+wget https://raw.githubusercontent.com/polfliet/instruqt/master/kubernetes-new-relic-university/assets/app/redis.yaml
+wget https://raw.githubusercontent.com/polfliet/instruqt/master/kubernetes-new-relic-university/assets/app/frontend.yaml
+wget https://raw.githubusercontent.com/polfliet/instruqt/master/kubernetes-new-relic-university/assets/app/parser.yaml
+wget https://raw.githubusercontent.com/polfliet/instruqt/master/kubernetes-new-relic-university/assets/app/worker.yaml
+
+# Create our demo app in a seperate namespace
+kubectl create namespace demo-app
+
+# Copy the secret also to the demo-app namespace
+kubectl get secret newrelic-secret --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=demo-app -f -
+
+# Create the demo resources
+kubectl apply -f rabbitmq.yaml -n demo-app
+kubectl apply -f redis.yaml -n demo-app
+kubectl apply -f frontend.yaml -n demo-app
+kubectl apply -f parser.yaml -n demo-app
+kubectl apply -f worker.yaml -n demo-app
+popd
+
+# Download and run load generator in background
+wget https://raw.githubusercontent.com/polfliet/instruqt/master/kubernetes-new-relic-university/assets/scripts/loadgen.sh
+chmod +x loadgen.sh
+nohup ./loadgen.sh >/var/log/loadgen.out 2>/var/log/loadgen.err </dev/null & disown
+
+# Create directory for kube-state-metrics files and set as working directory
+mkdir kube-state-metrics/
+set-workdir $(pwd)/kube-state-metrics
+
+exit 0

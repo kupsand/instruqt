@@ -1,0 +1,304 @@
+slug: kubernetes-observability-workshop
+id: 4ixslya01htu
+type: track
+title: Kubernetes Observability Workshop
+teaser: See how easy it is to gain visibility into your Kubernetes clusters.
+description: |-
+  # Welcome to New Relic University - Kubernetes edition!
+
+  Congratulations! Today is your first day as Kubernetes operator of our brand new Kubernetes cluster.
+
+  Your job is to get full observability of our Kubernetes cluster following New Relic's Observability maturity model:
+
+  ![Kubernetes maturity model](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/maturity-model.png?raw=true "Kubernetes maturity model")
+
+  Below you will find interactive challenges to explore each layer in the maturity model.
+
+  Click on the *Start* button to accept your first challenge!
+icon: https://storage.googleapis.com/instruqt-frontend/img/tracks/kubernetes.png
+tags:
+- kubernetes
+owner: newrelic
+developers:
+- kdowns@newrelic.com
+- spolfliet@newrelic.com
+private: true
+published: true
+challenges:
+- slug: kubernetes-secrets
+  id: yyp2gyx2vpol
+  type: challenge
+  title: Best Practice - Using Kubernetes secrets
+  teaser: Use a Kubernetes secret to store the New Relic license key
+  assignment: "Kubernetes secrets are a great way to store passwords, private keys,
+    and other sensitive information. The secrets can then be shared with pods and
+    containers without having to pass them as plain text in your YAML files. You can
+    find more information about Kubernetes secrets on the [Kubernetes docs](https://kubernetes.io/docs/concepts/configuration/secret/).\n\nWe
+    will create a Kubernetes secret that contains your New Relic License key. The
+    License key will be used by the New Relic Observability agents to send data to
+    the platform. \n\n# Get your New Relic license key\nFirst we need to retrieve
+    your New Relic license key by logging in to your New Relic account, and clicking
+    on Account Settings. \n\nIf you don't have an account yet you can create a free
+    account on [New Relic.com](https://newrelic.com/signup).\n\n![alt text](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/nrlicense.gif?raw=true
+    \"License key\")\n\n# Create the Kubernetes secret\nNext we are going to create
+    the Kubernetes secret by copying the following command and **putting your license
+    key between the quotes** before pressing enter.\n\n```\nkubectl create secret
+    generic newrelic-secret --from-literal=new_relic_license_key='<LICENSE_KEY>'\n```\n\nYou
+    can check if the secret was added succesfully by running \n```\nkubectl describe
+    secret newrelic-secret\n```\n\nIf you made a mistake, you can delete the secret
+    with \n```\nkubectl delete secret newrelic-secret\n```\n\nThe yaml files in the
+    rest of this tutorial will refer to this *newrelic-secret* to retrieve the license
+    key. \n"
+  notes:
+  - type: text
+    contents: "Our new Kubernetes environment is being deployed. This takes a minute.\n\nKubernetes
+      (“koo-burr-NET-eez”) is the mangled conventional pronunciation of a Greek word,
+      κυβερνήτης, meaning “helmsman” or “pilot.” "
+  tabs:
+  - title: Shell
+    type: terminal
+    hostname: kubernetes
+  difficulty: basic
+  timelimit: 900
+- slug: k8s-health
+  id: ubp9gls805ve
+  type: challenge
+  title: Kubernetes health with kube-state-metrics
+  teaser: Deploy kube-state-metrics
+  assignment: "During this step we will install [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics),
+    a service that exposes metrics about the various Kubernetes objects. These metrics
+    can then be picked up by monitoring agents to provide information on the health
+    and performance of your Kubernetes cluster. \n\n# Installing kube-state-metrics\n\nDownload
+    kube-state-metrics version 1.7.2 from Github\n```\ncurl -L -o kube-state-metrics-1.7.2.zip
+    https://github.com/kubernetes/kube-state-metrics/archive/v1.7.2.zip && unzip kube-state-metrics-1.7.2.zip\n```\n\nInstall
+    kube-state-metrics in the cluster\n```\nkubectl apply -f kube-state-metrics-1.7.2/kubernetes\n```\n\nConfirm
+    that kube-state-metrics is installed (this might take a minute)\n```\nkubectl
+    get pods --all-namespaces | grep kube-state-metrics\n```\n\nAfter a while, you
+    should see something like:\n![alt text](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/ksm.png?raw=true
+    \"Kube-state-metrics\")\n\n# Looking at the data\n\nLet's take a sneak peak at
+    the data that's being retrieved by kube-state-metrics. \nFind out on which IP
+    address the kube-state-metrics service is running:\n\n```\nkubectl get svc kube-state-metrics
+    -n kube-system\n```\n\nYou can use the CLUSTER-IP address with `curl` to view
+    the metrics.\n\n```\ncurl http://<IP_ADDRESS>:8080/metrics\n```\n\nThe metrics
+    format is based off the Prometheus standard, which we will cover later in the
+    workshop. "
+  notes:
+  - type: text
+    contents: |-
+      The dev team is deploying an application to the cluster. Please wait a minute...
+
+      And, let's then get some visibility into what's happening!
+  tabs:
+  - title: Shell
+    type: terminal
+    hostname: kubernetes
+  difficulty: basic
+  timelimit: 900
+- slug: nr-k8s-integration
+  id: wvxf8lozszny
+  type: challenge
+  title: New Relic Kubernetes integration
+  teaser: Deploy the New Relic Kubernetes integration
+  assignment: "During this step we will deploy the New Relic Kubernetes integration
+    to our cluster.\n\nTo achieve this we are going to deploy a DaemonSet into our
+    Kubernetes cluster. A DaemonSet is a Kubernetes concept that ensures that we have
+    1 pod running on each node in our environment. For more information [check out
+    the Kubernetes documentation](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/).\n\nThis
+    DaemonSet will ensure that we have the New Relic Kubernetes agent running on each
+    node of our cluster.\nThe yaml file required is already available on our machines,
+    execute the following command to create the New Relic DaemonSet:\n```\nkubectl
+    apply -f nri-k8s.yaml\n```\n\nConfirm the DaemonSet was created: \n```\nkubectl
+    get daemonsets\n```\n\nYou should see something like:\n![Daemon set](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/daemonset.png?raw=true
+    \"Daemon set\")\n\nConfirm that the agent is running: \n```\nkubectl get pods\n```\n\nAfter
+    a minute, you should see something like:\n![New Relic pod running](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/infrapod.png?raw=true
+    \"New Relic pod running\")\n\n# Kubernetes Cluster Explorer\nOpen a new tab in
+    your browser and go to [one.newrelic.com](https://one.newrelic.com)\n\nClick on
+    the *Kubernetes Cluster Explorer* link and navigate to your cluster ('*New Relic
+    - Workshop*')\n![Kubernetes Cluster Explorer](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/kce.png?raw=true
+    \"Kubernetes Cluster Explorer\")\n\nYour Kubernetes Cluster Explorer should look
+    something like this:\n![Kubernetes Cluster Explorer](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/kce2.png?raw=true
+    \"Kubernetes Cluster Explorer\")\n\nTake some time to get familiar with the Kubernetes
+    cluster explorer. We will be using the cluster explorer in the rest of this session.\n\n**Try
+    to find an answer to the following questions**:\n* How many pods do we have running
+    in the demo-app namespace?\n* What image is used for the frontend deployment?\n*
+    How can I search for the pods that match a specific label?\n\n# Extra: Troubleshooting
+    the New Relic agent\nIf the New Relic agent is having trouble, a good place to
+    start is by looking at the log messages:\n```\nkubectl logs <POD_NAME>\n```"
+  notes:
+  - type: text
+    contents: |-
+      Great job, kube-state-metrics is deployed.
+
+      Time to hook up our cluster with the New Relic Kubernetes agent and start using the Kubernetes Cluster Explorer
+  tabs:
+  - title: Shell
+    type: terminal
+    hostname: kubernetes
+  difficulty: basic
+  timelimit: 900
+- slug: nr-k8s-events
+  id: tkxyhfxin1pf
+  type: challenge
+  title: New Relic Kubernetes Events integration
+  teaser: Correlate Kubernetes events in the Kubernetes cluster explorer
+  assignment: |-
+    Many things can happen in a Kubernetes environment (autoscaling, new deployments, resource contention, etc.). All these important events are registered by the Kubernetes API server.
+
+    We can inspect what's happening by manually doing:
+    ```
+    kubectl get events
+    ```
+
+    During this step we will deploy the New Relic Kubernetes events integration to our cluster. This will provide us with Kubernetes events in context of our Kubernetes Cluster Explorer.
+
+    # Install the New Relic Kubernetes events integration
+    The yaml file is already available on our machine, we can apply it:
+    ```
+    kubectl apply -f nri-k8s-events.yaml
+    ```
+
+    Confirm the Pod is running
+    ```
+    kubectl get pods
+    ```
+
+    You should see something like:
+    ![alt text](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/eventpod.png?raw=true "Event pod")
+
+    You can also check the logs of the agent `kubectl logs <POD_NAME>` as it's a good place to check for errors and any other issues.
+
+    *Let's find out in the next challenge what important events we can track!*
+  notes:
+  - type: text
+    contents: Autoscaling, new deployments, pods failing, ... A lot of things can
+      happen in a k8s cluster. Let's dig into Kubernetes events...
+  tabs:
+  - title: Shell
+    type: terminal
+    hostname: kubernetes
+  difficulty: basic
+  timelimit: 900
+- slug: nr-logs
+  id: znjusvjykria
+  type: challenge
+  title: New Relic Logs for Kubernetes
+  teaser: Stream Kubernetes logs to New Relic
+  assignment: |
+    New Relic's FluentBit plugin allows us to collect log messages generated by the containers in our cluster
+
+    # Install FluentBit and the New Relic FluentBit plugin
+    The yaml files are already available on our machine, we can apply it:
+
+    ```
+    kubectl apply -f nri-k8s-fluentbit.yaml
+    ```
+
+    Confirm that FluentBit is running
+    ```
+    kubectl get pods
+    ```
+
+    You should see something like:
+    ![FluentBit plugin](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/fluentbit.png?raw=true "New Relic FluentBit plugin")
+
+    You can look at the log messages from your pod, as follows:
+    ```
+    kubectl logs -n demo-app -l tier=parser
+    ```
+
+    But, we don't want to switch between tools, we want to get those logs in context of our Kubernetes Cluster Explorer!
+
+    # Kubernetes Cluster Explorer
+    Go back to the open tab with our Kubernetes Cluster Explorer.
+
+    Search and click on the *Parser* pod, click on the *See logs* button.
+
+    You should see something like:
+    ![New Relic Logs](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/logs.png?raw=true "New Relic Logs")
+
+    Notice how the log messages are automatically filtered by the correct *pod_name*.
+  notes:
+  - type: text
+    contents: To further investigate issues in our cluster, the dev team has been
+      adding some log messages. It would be great if we could see logs in context
+      of our Kubernetes Cluster Explorer.
+  tabs:
+  - title: Shell
+    type: terminal
+    hostname: kubernetes
+  difficulty: basic
+  timelimit: 900
+- slug: nr-distributed-tracing
+  id: sqatvyguy0vx
+  type: challenge
+  title: Using Distributed Tracing
+  teaser: Trace your microservices
+  assignment: |
+    Many services could be communicating in a Kubernetes environment, Distributed Tracing allows us to track and understand that communication.
+
+    * A distributed trace represents a unique transaction that flows through your microservice environment
+    * A trace consists of spans, which represent a unit of work (e.g.: code execution on 1 microservice)
+    ![Distributed Tracing](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/dt-intro.png?raw=true "Distributed Tracing")
+
+    # Kubernetes Cluster Explorer
+    Go back to the Cluster Explorer. Search for the 'frontend' deployment and click on the pod.
+
+    Because we have an APM agent running in the container, we can see application details in the context of this pod. You should see something like this:
+    ![APM details](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/pod-apm.png?raw=true "APM")
+
+    Click on *'Trace this application'* to show relevant traces for the service running inside this pod.
+
+    Now we see an overview of all traces that were captured:
+    ![Distributed Traces](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/dt-overview.png?raw=true "Distributed Traces")
+
+    Click on one of the traces and try to understand what happened:
+    * How many entities were involved in this trace?
+    * How much time are we spending in each service?
+
+    ## More details?
+
+    The dev team added a custom attribute *msgData* to the traces. This way we are able to quickly find a specific trace. Try using the *msgData* attribute in the search field.
+    ![Distributed Tracing - Custom Attributes](https://github.com/polfliet/instruqt/blob/master/kubernetes-new-relic-university/screenshots/dt-search.png?raw=true "Distributed Tracing - Custom Attributes")
+
+    Learne more about [adding custom APM attributes here](https://docs.newrelic.com/docs/using-new-relic/data/customize-data/collect-custom-attributes).
+
+    # Extra: Add the New Relic APM agent to your container image
+    We get Distributed Tracing and other APM capabilities out-of-the-box by adding the New Relic APM agent to our containers.
+
+    The dev team already added the APM agent for our Node.js application. Here is more information on how to install an APM agent for different language. The basic idea is to package the APM agent within the container, for example by adding it to your Dockerfile:
+    * [New Relic Java APM](https://docs.newrelic.com/docs/agents/java-agent/additional-installation/install-new-relic-java-agent-docker)
+    * [New Relic Python APM](https://docs.newrelic.com/docs/agents/php-agent/advanced-installation/docker-other-container-environments-install-php-agent)
+    * [New Relic .NET APM](https://docs.newrelic.com/docs/agents/net-agent/installation/install-docker-container)
+    * [Install New Relic for Go](https://docs.newrelic.com/docs/agents/go-agent/installation/install-new-relic-go)
+    * [Install New Relic for Node.js](https://docs.newrelic.com/docs/agents/nodejs-agent/installation-configuration/install-nodejs-agent)
+    * [Install New Relic for Python](https://docs.newrelic.com/docs/agents/python-agent/installation/standard-python-agent-install)
+    * [Install New Relic for Ruby](https://docs.newrelic.com/docs/agents/ruby-agent/installation/install-new-relic-ruby-agent)
+  notes:
+  - type: text
+    contents: Your environment is becoming more complex. Teams are asking to understand
+      how the microservices are communicating and where they are spending time. The
+      dev team is a big fan of New Relic and they have added the New Relic APM agent
+      to their containers.
+  tabs:
+  - title: Shell
+    type: terminal
+    hostname: kubernetes
+  difficulty: basic
+  timelimit: 900
+- slug: summary
+  id: ovmm9z2xo7zv
+  type: challenge
+  title: Summary
+  teaser: summary
+  assignment: "Great job!\n\nWe now have full observability in our Kubernetes environment.\n\nDuring
+    this workshop, we went through several steps. We used Kubernetes secrets to save
+    the New Relic License key.\nWe setup the integration and checked out the metrics
+    available. Next, we configured both events and logs to be sent to New Relic.\nFinally,
+    we looked at application Tracing.\n\nWe were able to bring all four, Metrics,
+    Events, Logs, & Traces into the Kubernetes cluster explorer.\n\nIt doesn't take
+    much to bring a Kubernetes environment into the New Relic Observability platform.\n\nNow
+    it's your turn to bring your Kubernetes environment into New Relic.        \n\nGood
+    luck!!"
+  difficulty: basic
+  timelimit: 500
+checksum: "2743511731512410399"
